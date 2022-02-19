@@ -130,7 +130,7 @@ def run_cmd():
     )
     args = parser.parse_args()
     if args.version:
-        print(f" {VERSION}")
+        print(f"{VERSION}")
         sys.exit(0)
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
