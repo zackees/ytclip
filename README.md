@@ -35,6 +35,11 @@ $ cd <MY_DIRECTORY>
 $ ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --length 20 --outname myoutputfile
 ```
 
+``` Help file
+$ ytclip --help
+```
+
+
 # Api
 
 You can also use it as an api:
