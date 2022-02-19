@@ -19,7 +19,8 @@ $ python -m pip install ytclip
 
 # Running
 
-```
+
+``` (Interactive)
 $ cd <MY_DIRECTORY>
 $ ytclip
 Add new video:
@@ -29,11 +30,9 @@ Add new video:
   output_name: my_file
 ```
 
-# In automation
-
-To use this tool in your command scripts, pass the `--once` flag like `ytclip --once`. This allows the tool to only prompt the user once for input. The arguments will need to be passed into the command as stdin. For example something like this for bash:
-```
-    (echo 'http://www.youtube.com/watch?v=-wtIMTCHWuI'; echo '08:59'; echo '15'; echo './myoutput') | ytclip --once
+``` (CMD-line)
+$ cd <MY_DIRECTORY>
+$ ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --length 20 --outname myoutputfile
 ```
 
 # Api

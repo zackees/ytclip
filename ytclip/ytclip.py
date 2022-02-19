@@ -38,7 +38,9 @@ def _find_video_file_from_stdout(stdout: str) -> Optional[str]:
     return value
 
 
-def _exec(cmd_str: str) -> Tuple[int, str, str]:
+def _exec(cmd_str: str, verbose: bool = False) -> Tuple[int, str, str]:
+    if verbose:
+        sys.stdout.write(f'Running "{cmd_str}"\n')
     proc_yt = subprocess.Popen(  # pylint: disable=consider-using-with
         cmd_str,
         shell=True,
@@ -47,6 +49,9 @@ def _exec(cmd_str: str) -> Tuple[int, str, str]:
         stderr=subprocess.PIPE,
     )
     stdout, stderr = proc_yt.communicate()
+    if verbose:
+        sys.stdout.write(stdout)
+        sys.stderr.write(stderr)
     assert proc_yt.returncode is not None
     return proc_yt.returncode, stdout, stderr
 
@@ -56,53 +61,85 @@ def _append_file(filepath: str, data: str):
         filed.write(data)
 
 
-def run_download_and_cut(
-    url: str, start_timestamp: str, length: str, outname: str
+def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals
+    url: str,
+    start_timestamp: str,
+    length: str,
+    outname: str,
+    log: bool = LOG,
+    verbose: bool = False,
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
-    if LOG:
-        outlog = os.path.join("log", outname + ".log")
-        os.makedirs(os.path.dirname(outlog), exist_ok=True)
-    yt_dlp_cmd: str = f"yt-dlp --no-check-certificate --force-overwrites {url}"
-    returncode, stdout, stderr = _exec(yt_dlp_cmd)
-    if LOG:
-        _append_file(
-            outlog, f"{yt_dlp_cmd} returned {returncode}\n\n {stdout+stderr}\n"
+    os.makedirs(os.path.abspath(outname), exist_ok=True)
+    save_cwd_dir = os.getcwd()
+    os.chdir(outname)
+    try:
+        if log:
+            outlog = "run.log"
+            with open(outlog, encoding="utf-8", mode="w") as filed:
+                filed.write("")
+
+        video_path_tmpl = r"full_video.%(ext)s"
+        yt_dlp_cmd: str = f'yt-dlp --no-check-certificate --force-overwrites --output "{video_path_tmpl}" {url}'  # pylint: disable=line-too-long
+        if log:
+            _append_file(outlog, f"Running: {yt_dlp_cmd}\n")
+        returncode, stdout, stderr = _exec(yt_dlp_cmd, verbose=verbose)
+        if log:
+            _append_file(
+                outlog,
+                f"END ->> {yt_dlp_cmd} returned {returncode}\n\n {stdout+stderr}\n",
+            )
+        # Search through the output of the yt-dlp command to for the
+        # file name.
+        fullvideo = _find_video_file_from_stdout(stdout + stderr)
+        if fullvideo is None or not os.path.exists(fullvideo):
+            # try and find new video
+            files = [
+                file
+                for file in os.listdir()
+                if (file.endswith(".mp4") or file.endswith(".webm"))
+                and os.path.isfile(file)
+            ]
+            if files:
+                fullvideo = files[0]
+            else:
+                raise OSError(
+                    f"Could not find a video in \n"
+                    "###################\n"
+                    f"{stdout}"
+                    "\n###################\n"
+                    f"with command '{yt_dlp_cmd}'\n"
+                    f"RETURNED: {returncode}\n"
+                )
+        ffmpeg_cmd = (
+            f'static_ffmpeg -y -i "{fullvideo}"'  # accepts any prompts with y
+            # start timestamp (seconds or h:mm:ss:ff)
+            f" -ss {start_timestamp}"
+            # length timestamp (seconds or h:mm:ss:ff)
+            f" -t {length}"
+            f" {outname}.mp4"
         )
-    # Search through the output of the yt-dlp command to for the
-    # file name.
-    fullvideo = _find_video_file_from_stdout(stdout + stderr)
-    if fullvideo is None or not os.path.exists(fullvideo):
-        raise OSError(
-            f"Could not find a video in \n"
-            "###################\n"
-            f"{stdout}"
-            "\n###################\n"
-            f"with command '{yt_dlp_cmd}'\n"
-            f"RETURNED: {returncode}\n"
-        )
-    ffmpeg_cmd = (
-        f'static_ffmpeg -y -i "{fullvideo}"'  # accepts any prompts with y
-        # start timestamp (seconds or h:mm:ss:ff)
-        f" -ss {start_timestamp}"
-        # length timestamp (seconds or h:mm:ss:ff)
-        f" -t {length}"
-        f" {outname}.mp4"
-    )
-    returncode, stdout, stderr = _exec(ffmpeg_cmd)
-    if LOG:
-        _append_file(outlog, f"{ffmpeg_cmd} returned {returncode}\n\n{stdout+stderr}\n")
-    if returncode != 0:
-        raise OSError(
-            f"Error running {ffmpeg_cmd}."
-            "###################\n"
-            f"STDOUT:\n{stdout}\n"
-            "\n###################\n"
-            f"STDERR:\n{stderr}\n"
-            "\n###################\n"
-            f"with command '{yt_dlp_cmd}'\n"
-        )
-    os.remove(fullvideo)
+        if log:
+            _append_file(outlog, f"Running: {ffmpeg_cmd}\n")
+        returncode, stdout, stderr = _exec(ffmpeg_cmd, verbose=verbose)
+        if log:
+            _append_file(
+                outlog,
+                f"END ->> {ffmpeg_cmd} returned {returncode}\n\n{stdout+stderr}\n",
+            )
+        if returncode != 0:
+            raise OSError(
+                f'Error running "{ffmpeg_cmd}".'
+                "\n###################\n"
+                f"STDOUT:\n{stdout}\n"
+                "\n###################\n"
+                f"STDERR:\n{stderr}\n"
+                "\n###################\n"
+                f'with command "{yt_dlp_cmd}"\n'
+            )
+        os.remove(fullvideo)
+    finally:
+        os.chdir(save_cwd_dir)
 
 
 def _finish_then_print_completion(future):
@@ -135,31 +172,57 @@ def unit_test_bitchute():
     )
 
 
-def run_cmd():
+def _epilog() -> str:
+    return (
+        "Example:\n"
+        "  ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --length 20 --outname myoutputfile\n"  # pylint: disable=line-too-long
+        "Any missing arguments will be prompted.\n"
+    )
+
+
+def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
     """Entry point for the command line "ytclip" utilitiy."""
     global LOG  # pylint: disable=global-statement
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--once",
-        action="store_true",
-        help=(
-            "only run the tool once (useful for automation)\n"
-            "Example:\n"
-            "(echo 'http://www.youtube.com/watch?v=-wtIMTCHWuI'; echo '08:59'; echo '15'; echo './myoutput') | ytclip --once\n"  # pylint: disable=line-too-long
-        ),
+    parser = argparse.ArgumentParser(
+        description="Downloads and clips videos from the internet.\n",
+        epilog=_epilog(),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument(
         "--version", action="store_true", help=f"print version {VERSION}"
     )
-    parser.add_argument(
-        "--no-log", action="store_true", help="suppresses log file if set"
-    )
+    parser.add_argument("--no-log", action="store_true", help="Suppresses logging.")
+    parser.add_argument("--url", help="url to fetch from")
+    parser.add_argument("--start_timestamp", help="start of the clip")
+    parser.add_argument("--length", help="length of the clip")
+    parser.add_argument("--outname", help="output name of the file")
     args = parser.parse_args()
     if args.version:
         print(f"{VERSION}")
         sys.exit(0)
     if args.no_log:
         LOG = False
+
+    if (
+        (args.url is not None)
+        or (args.start_timestamp is not None)
+        or (args.length is not None)
+        or (args.outname is not None)
+    ):
+        url = args.url or input("url: ")
+        start_timestamp = args.start_timestamp or input("start_timestamp: ")
+        length = args.length or input("length (seconds): ")
+        outname = args.outname or input("output name: ")
+        run_download_and_cut(
+            url=url,
+            start_timestamp=start_timestamp,
+            length=length,
+            outname=outname,
+            verbose=True,
+        )
+        sys.exit(0)
+
+    # Interactive mode.
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
     try:
@@ -176,7 +239,7 @@ def run_cmd():
                         url=url,
                         start_timestamp=start_timestamp,
                         length=length,
-                        outname=output_name
+                        outname=output_name,
                     )
 
                 f = executor.submit(task)  # pylint: disable=invalid-name
@@ -217,6 +280,16 @@ def run_cmd():
     print("All commands completed.")
 
 
+def unit_test_rap_video():
+    """Weird title requires special handling for intermediate file name."""
+    run_download_and_cut(
+        url="https://www.youtube.com/watch?v=CLXt3yh2g0s",
+        start_timestamp="00:32",
+        length="20",
+        outname="myoutputfile",
+    )
+
+
 def main():
     """Just defaults to run_cmd."""
     run_cmd()
@@ -226,4 +299,5 @@ if __name__ == "__main__":
     # unit_test_brighteon()
     # unit_test_stdout_parse()
     # unit_test_bitchute()
+    # unit_test_rap_video()
     main()
