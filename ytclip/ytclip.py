@@ -141,14 +141,9 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
                 "\n###################\n"
                 f'with command "{yt_dlp_cmd}"\n'
             )
-        if log:
-            _append_file(outlog, f"moving {outname}.mp4 -> ..\n")
-        shutil.move(f"{outname}.mp4", "..")
     finally:
         if not KEEP:
-            if log:
-                _append_file(outlog, f"removing directory {outname}\n")
-            shutil.rmtree(os.path.abspath(outname), ignore_errors=True)
+            shutil.rmtree(outname, ignore_errors=True)
 
 
 def _finish_then_print_completion(future):
