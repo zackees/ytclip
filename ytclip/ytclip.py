@@ -13,6 +13,8 @@ from typing import Optional, Tuple
 
 from ytclip.version import VERSION
 
+LOG = True
+
 
 def _find_video_file_from_stdout(stdout: str) -> Optional[str]:
     value = None
@@ -43,12 +45,23 @@ def _exec(cmd_str: str) -> Tuple[int, str, str]:
     return proc_yt.returncode, stdout, stderr
 
 
+def _append_file(filepath: str, data: str):
+    with open(filepath, encoding="utf-8", mode="at") as filed:
+        filed.write(data)
+
+
 def run_download_and_cut(
     url: str, start_timestamp: str, length: str, outname: str
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
+    outlog = os.path.join("log", outname + ".log")
+    os.makedirs(os.path.dirname(outlog), exist_ok=True)
     yt_dlp_cmd: str = f"yt-dlp --no-check-certificate --force-overwrites {url}"
     returncode, stdout, stderr = _exec(yt_dlp_cmd)
+    if LOG:
+        _append_file(
+            outlog, f"{yt_dlp_cmd} returned {returncode}\n\n {stdout+stderr}\n"
+        )
     # Search through the output of the yt-dlp command to for the
     # file name.
     fullvideo = _find_video_file_from_stdout(stdout + stderr)
@@ -70,6 +83,8 @@ def run_download_and_cut(
         f" {outname}.mp4"
     )
     returncode, stdout, stderr = _exec(ffmpeg_cmd)
+    if LOG:
+        _append_file(outlog, f"{ffmpeg_cmd} returned {returncode}\n\n{stdout+stderr}\n")
     if returncode != 0:
         raise OSError(
             f"Error running {ffmpeg_cmd}."
@@ -115,6 +130,7 @@ def unit_test_bitchute():
 
 def run_cmd():
     """Entry point for the command line "ytclip" utilitiy."""
+    global LOG  # pylint: disable=global-statement
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--once",
@@ -128,10 +144,15 @@ def run_cmd():
     parser.add_argument(
         "--version", action="store_true", help=f"print version {VERSION}"
     )
+    parser.add_argument(
+        "--no-log", action="store_true", help="suppresses log file if set"
+    )
     args = parser.parse_args()
     if args.version:
         print(f"{VERSION}")
         sys.exit(0)
+    if args.no_log:
+        LOG = False
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
     try:
