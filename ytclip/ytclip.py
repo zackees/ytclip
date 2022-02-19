@@ -154,7 +154,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
 def _finish_then_print_completion(future):
     try:
         future.result()
-        print(f'Finished job "{future.url}"')
+        print(f'Finished job "{future.name}" with "{future.url}"')
     except BaseException as berr:  # pylint: disable=broad-except
         print(
             f'ERROR fetching clip from "{future.url}" because of error:\n' f"{berr}\n"
