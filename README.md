@@ -49,3 +49,12 @@ run_download_and_cut(
     length="20",
     outname="myclip_withoutsuffix")
 ```
+
+You can also turn off logging like so:
+
+```
+from ytclip.ytclip import run_download_and_cut, set_logging
+
+set_logging(False)
+run_download_and_cut(...)
+```

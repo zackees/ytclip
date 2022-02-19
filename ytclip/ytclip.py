@@ -16,6 +16,12 @@ from ytclip.version import VERSION
 LOG = True
 
 
+def set_logging(val: bool) -> None:
+    """Sets the logging state, which is the file created for each command."""
+    global LOG  # pylint: disable=global-statement
+    LOG = val
+
+
 def _find_video_file_from_stdout(stdout: str) -> Optional[str]:
     value = None
     for line in stdout.splitlines():
@@ -46,7 +52,7 @@ def _exec(cmd_str: str) -> Tuple[int, str, str]:
 
 
 def _append_file(filepath: str, data: str):
-    with open(filepath, encoding="utf-8", mode="at") as filed:
+    with open(filepath, encoding="utf-8", mode="a+") as filed:
         filed.write(data)
 
 
@@ -54,8 +60,9 @@ def run_download_and_cut(
     url: str, start_timestamp: str, length: str, outname: str
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
-    outlog = os.path.join("log", outname + ".log")
-    os.makedirs(os.path.dirname(outlog), exist_ok=True)
+    if LOG:
+        outlog = os.path.join("log", outname + ".log")
+        os.makedirs(os.path.dirname(outlog), exist_ok=True)
     yt_dlp_cmd: str = f"yt-dlp --no-check-certificate --force-overwrites {url}"
     returncode, stdout, stderr = _exec(yt_dlp_cmd)
     if LOG:
@@ -166,7 +173,10 @@ def run_cmd():
 
                 def task():
                     return run_download_and_cut(
-                        url, output_name, start_timestamp, length
+                        url=url,
+                        start_timestamp=start_timestamp,
+                        length=length,
+                        outname=output_name
                     )
 
                 f = executor.submit(task)  # pylint: disable=invalid-name
@@ -181,8 +191,14 @@ def run_cmd():
             futures = [f for f in futures if f not in finished_futures]
             for f in finished_futures:  # pylint: disable=invalid-name
                 _finish_then_print_completion(f)
-            unfinished_names = [f.name for f in futures]
-            print(f"There are {unfinished_names} jobs outstanding")
+            out_str = f"There are {len(futures)} jobs outstanding:\n"
+            if len(futures):
+                for f in futures:  # pylint: disable=invalid-name
+                    out_str += f"\n  {f.name}"
+                out_str += "\n"
+            out_str += "\n"
+            print(out_str)
+
             if args.once:
                 break
 
