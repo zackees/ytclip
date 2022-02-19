@@ -4,6 +4,7 @@
 """
 
 import os
+import argparse
 import subprocess
 import sys
 import time
@@ -42,7 +43,9 @@ def _exec(cmd_str: str) -> Tuple[int, str, str]:
     return proc_yt.returncode, stdout, stderr
 
 
-def run_download_and_cut(url, outname, start_timestamp, length):
+def run_download_and_cut(
+    url: str, start_timestamp: str, length: str, outname: str
+) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
     yt_dlp_cmd: str = f"yt-dlp --no-check-certificate --force-overwrites {url}"
     returncode, stdout, stderr = _exec(yt_dlp_cmd)
@@ -94,23 +97,40 @@ def unit_test_brighteon():
     """Unit test for brighteon."""
     run_download_and_cut(
         "https://www.brighteon.com/f596cc8b-4b52-4152-92cb-39dadc552833",
-        "health_ranger_report",
         "10:47",
         "20",
+        "health_ranger_report",
     )
 
 
 def unit_test_bitchute():
     """Unit test for bitchute."""
     run_download_and_cut(
-        "https://www.bitchute.com/video/pDCS8i20enIq", "sarah_westhall", "08:08", "20"
+        "https://www.bitchute.com/video/pDCS8i20enIq",
+        "08:08",
+        "20",
+        "sarah_westhall",
     )
 
 
 def run_cmd():
     """Entry point for the command line "ytclip" utilitiy."""
-    if "-v" in sys.argv or "--version" in sys.argv:
-        print(f"ytclip version: {VERSION}")
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--once",
+        action="store_true",
+        help=(
+            "only run the tool once (useful for automation)\n"
+            "Example:\n"
+            "(echo 'http://www.youtube.com/watch?v=-wtIMTCHWuI'; echo '08:59'; echo '15'; echo './myoutput') | ytclip --once\n"  # pylint: disable=line-too-long
+        ),
+    )
+    parser.add_argument(
+        "--version", action="store_true", help=f"print version {VERSION}"
+    )
+    args = parser.parse_args()
+    if args.version:
+        print(f" {VERSION}")
         sys.exit(0)
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
@@ -135,13 +155,15 @@ def run_cmd():
                 print(f"\nStarting {url} in background.\n")
             # Have any futures completed?
             finished_futures = [
-                f for f in futures if f.done()
-            ]  # pylint: disable=invalid-name
+                f for f in futures if f.done()  # pylint: disable=invalid-name
+            ]
             futures = [f for f in futures if f not in finished_futures]
             for f in finished_futures:  # pylint: disable=invalid-name
                 _finish_then_print_completion(f)
             unfinished_names = [f.name for f in futures]
             print(f"There are {unfinished_names} jobs outstanding")
+            if args.once:
+                break
 
     except KeyboardInterrupt:
         print("\n\n")

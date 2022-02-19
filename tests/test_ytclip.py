@@ -1,11 +1,12 @@
 import os
-import stat
-import subprocess
-import sys
 import unittest
 
 
 class YtclipTester(unittest.TestCase):
+
+    def test_imports(self) -> None:
+        from ytclip.ytclip import run_download_and_cut
+        self.assertTrue(run_download_and_cut)
 
     def test_platform_executable(self) -> None:
         rtn = os.system('ytclip --version')
