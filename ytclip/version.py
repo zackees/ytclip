@@ -1,3 +1,3 @@
 """Just holds the version for the app"""
 
-VERSION = "1.1.4"
+VERSION = "1.1.5"

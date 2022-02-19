@@ -99,10 +99,10 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
         if fullvideo is None or not os.path.exists(fullvideo):
             # try and find new video
             files = [
-                file
-                for file in os.listdir()
+                os.path.join(outname, file)
+                for file in os.listdir(outname)
                 if (file.endswith(".mp4") or file.endswith(".webm"))
-                and os.path.isfile(file)
+                and os.path.isfile(os.path.join(outname, file))
             ]
             if files:
                 fullvideo = files[0]
