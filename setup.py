@@ -8,7 +8,7 @@ from setuptools import Command, find_packages, setup
 HERE = os.path.dirname(__file__)
 
 NAME = "ytclip"
-DESCRIPTION = "Cross platform ffmpeg to work on various systems."
+DESCRIPTION = "Command to download a video and cut out a clip."
 URL = "https://github.com/zackees/ytclip"
 EMAIL = "dont@email.me"
 AUTHOR = "Zach Vorhies"
