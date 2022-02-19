@@ -5,6 +5,7 @@
 
 import os
 import argparse
+import shutil
 import subprocess
 import sys
 import time
@@ -14,6 +15,7 @@ from typing import Optional, Tuple
 from ytclip.version import VERSION
 
 LOG = True
+KEEP = False
 
 
 def set_logging(val: bool) -> None:
@@ -61,7 +63,7 @@ def _append_file(filepath: str, data: str):
         filed.write(data)
 
 
-def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals
+def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
     url: str,
     start_timestamp: str,
     length: str,
@@ -137,9 +139,15 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals
                 "\n###################\n"
                 f'with command "{yt_dlp_cmd}"\n'
             )
-        os.remove(fullvideo)
+        if log:
+            _append_file(outlog, f"moving {outname}.mp4 -> ..\n")
+        shutil.move(f"{outname}.mp4", "..")
     finally:
         os.chdir(save_cwd_dir)
+        if not KEEP:
+            if log:
+                _append_file(outlog, f"removing directory {outname}\n")
+            shutil.rmtree(os.path.abspath(outname), ignore_errors=True)
 
 
 def _finish_then_print_completion(future):
@@ -183,6 +191,7 @@ def _epilog() -> str:
 def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
     """Entry point for the command line "ytclip" utilitiy."""
     global LOG  # pylint: disable=global-statement
+    global KEEP  # pylint: disable=global-statement
     parser = argparse.ArgumentParser(
         description="Downloads and clips videos from the internet.\n",
         epilog=_epilog(),
@@ -196,12 +205,15 @@ def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
     parser.add_argument("--start_timestamp", help="start of the clip")
     parser.add_argument("--length", help="length of the clip")
     parser.add_argument("--outname", help="output name of the file")
+    parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
     args = parser.parse_args()
     if args.version:
         print(f"{VERSION}")
         sys.exit(0)
     if args.no_log:
         LOG = False
+    if args.keep:
+        KEEP = True
 
     if (
         (args.url is not None)
