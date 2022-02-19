@@ -262,9 +262,6 @@ def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
             out_str += "\n"
             print(out_str)
 
-            if args.once:
-                break
-
     except KeyboardInterrupt:
         print("\n\n")
 
