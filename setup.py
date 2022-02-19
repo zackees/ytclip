@@ -24,9 +24,9 @@ with open(os.path.join(HERE, "requirements.txt"), "rt") as fd:
 with open(os.path.join(HERE, "ytclip", "version.py"), "rt") as fd:
     for line in fd.readlines():
         if "VERSION" in line:
-            VERSION = line.split("=")[1].strip(" \n")
+            VERSION = line.split("=")[1].strip(" \n\"")
+            print(VERSION)
             break
-
 
 class UploadCommand(Command):
     """Support setup.py upload."""
