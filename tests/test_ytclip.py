@@ -8,7 +8,8 @@ import unittest
 class YtclipTester(unittest.TestCase):
 
     def test_platform_executable(self) -> None:
-        self.assertTrue(True)
+        rtn = os.system('ytclip --version')
+        self.assertEqual(0, rtn)
 
 
 if __name__ == "__main__":
