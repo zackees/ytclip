@@ -40,12 +40,15 @@ def _find_video_file_from_stdout(stdout: str) -> Optional[str]:
     return value
 
 
-def _exec(cmd_str: str, verbose: bool = False) -> Tuple[int, str, str]:
+def _exec(
+    cmd_str: str, verbose: bool = False, cwd: Optional[str] = None
+) -> Tuple[int, str, str]:
     if verbose:
         sys.stdout.write(f'Running "{cmd_str}"\n')
     proc_yt = subprocess.Popen(  # pylint: disable=consider-using-with
         cmd_str,
         shell=True,
+        cwd=cwd,
         universal_newlines=True,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -72,20 +75,19 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
     verbose: bool = False,
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
-    os.makedirs(os.path.abspath(outname), exist_ok=True)
-    save_cwd_dir = os.getcwd()
-    os.chdir(outname)
+    outname = os.path.abspath(outname)
+    os.makedirs(outname, exist_ok=True)
     try:
         if log:
-            outlog = "run.log"
+            outlog = os.path.join(outname, "run.log")
             with open(outlog, encoding="utf-8", mode="w") as filed:
                 filed.write("")
 
         video_path_tmpl = r"full_video.%(ext)s"
         yt_dlp_cmd: str = f'yt-dlp --no-check-certificate --force-overwrites --output "{video_path_tmpl}" {url}'  # pylint: disable=line-too-long
         if log:
-            _append_file(outlog, f"Running: {yt_dlp_cmd}\n")
-        returncode, stdout, stderr = _exec(yt_dlp_cmd, verbose=verbose)
+            _append_file(outlog, f"Running: {yt_dlp_cmd}\nin {outname}")
+        returncode, stdout, stderr = _exec(yt_dlp_cmd, verbose=verbose, cwd=outname)
         if log:
             _append_file(
                 outlog,
@@ -122,8 +124,8 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             f" {outname}.mp4"
         )
         if log:
-            _append_file(outlog, f"Running: {ffmpeg_cmd}\n")
-        returncode, stdout, stderr = _exec(ffmpeg_cmd, verbose=verbose)
+            _append_file(outlog, f"Running: {ffmpeg_cmd}\nin {outname}")
+        returncode, stdout, stderr = _exec(ffmpeg_cmd, verbose=verbose, cwd=outname)
         if log:
             _append_file(
                 outlog,
@@ -143,7 +145,6 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             _append_file(outlog, f"moving {outname}.mp4 -> ..\n")
         shutil.move(f"{outname}.mp4", "..")
     finally:
-        os.chdir(save_cwd_dir)
         if not KEEP:
             if log:
                 _append_file(outlog, f"removing directory {outname}\n")
