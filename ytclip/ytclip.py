@@ -115,14 +115,20 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
                     f"with command '{yt_dlp_cmd}'\n"
                     f"RETURNED: {returncode}\n"
                 )
+        outfile = f"{outname}.mp4"
         ffmpeg_cmd = (
             f'static_ffmpeg -y -i "{fullvideo}"'  # accepts any prompts with y
             # start timestamp (seconds or h:mm:ss:ff)
             f" -ss {start_timestamp}"
             # length timestamp (seconds or h:mm:ss:ff)
             f" -t {length}"
-            f" {outname}.mp4"
+            f" {outfile}"
         )
+        outfile_abs = os.path.join(outname, outfile)
+        if os.path.exists(outfile_abs):
+            if log:
+                _append_file(outlog, f"Deleting previous file: {outfile_abs}\n")
+            os.remove(outfile_abs)
         if log:
             _append_file(outlog, f"Running: {ffmpeg_cmd}\nin {outname}")
         returncode, stdout, stderr = _exec(ffmpeg_cmd, verbose=verbose, cwd=outname)
