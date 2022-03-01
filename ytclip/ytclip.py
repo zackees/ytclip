@@ -190,52 +190,7 @@ def _epilog() -> str:
     )
 
 
-def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
-    """Entry point for the command line "ytclip" utilitiy."""
-    global LOG  # pylint: disable=global-statement
-    global KEEP  # pylint: disable=global-statement
-    parser = argparse.ArgumentParser(
-        description="Downloads and clips videos from the internet.\n",
-        epilog=_epilog(),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--version", action="store_true", help=f"print version {VERSION}"
-    )
-    parser.add_argument("--no-log", action="store_true", help="Suppresses logging.")
-    parser.add_argument("--url", help="url to fetch from")
-    parser.add_argument("--start_timestamp", help="start of the clip")
-    parser.add_argument("--length", help="length of the clip")
-    parser.add_argument("--outname", help="output name of the file")
-    parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
-    args = parser.parse_args()
-    if args.version:
-        print(f"{VERSION}")
-        sys.exit(0)
-    if args.no_log:
-        LOG = False
-    if args.keep:
-        KEEP = True
-
-    if (
-        (args.url is not None)
-        or (args.start_timestamp is not None)
-        or (args.length is not None)
-        or (args.outname is not None)
-    ):
-        url = args.url or input("url: ")
-        start_timestamp = args.start_timestamp or input("start_timestamp: ")
-        length = args.length or input("length (seconds): ")
-        outname = args.outname or input("output name: ")
-        run_download_and_cut(
-            url=url,
-            start_timestamp=start_timestamp,
-            length=length,
-            outname=outname,
-            verbose=True,
-        )
-        sys.exit(0)
-
+def _run_concurrent() -> None:
     # Interactive mode.
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
@@ -271,7 +226,7 @@ def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
             out_str = f"There are {len(futures)} jobs outstanding:\n"
             if len(futures):
                 for f in futures:  # pylint: disable=invalid-name
-                    out_str += f"\n  {f.name}"
+                    out_str += f"\n  {f.name}"  # type: ignore
                 out_str += "\n"
             out_str += "\n"
             print(out_str)
@@ -283,12 +238,62 @@ def run_cmd():  # pylint: disable=too-many-branches,too-many-statements
     if unfinished_futures:
         print(f"Waiting for {len(unfinished_futures)} commands to finish")
         for i, f in enumerate(unfinished_futures):  # pylint: disable=invalid-name
-            sys.stdout.write(f"  Waiting for {f.url} to finish...\n")
+            sys.stdout.write(f"  Waiting for {f.url} to finish...\n")  # type: ignore
             while not f.done():
                 time.sleep(0.1)
             _finish_then_print_completion(f)
             sys.stdout.write(f"  ... done, {len(unfinished_futures)-i} left\n")
     print("All commands completed.")
+
+
+def run_cmd() -> int:  # pylint: disable=too-many-branches,too-many-statements
+    """Entry point for the command line "ytclip" utilitiy."""
+
+    parser = argparse.ArgumentParser(
+        description="Downloads and clips videos from the internet.\n",
+        epilog=_epilog(),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--version", action="store_true", help=f"print version {VERSION}"
+    )
+    parser.add_argument("url", help="url of the video to download", nargs="?")
+    parser.add_argument(
+        "--concurrent", "-c", action="store_true", help="Allows multiple jobs"
+    )
+    parser.add_argument("--no-log", action="store_true", help="Suppresses logging.")
+    parser.add_argument("--start_timestamp", help="start timestamp of the clip")
+    parser.add_argument("--end_timestamp", help="end timestamp of the clip")
+    parser.add_argument("--outname", help="output name of the file (auto saved as mp4)")
+    parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
+    args = parser.parse_args()
+    if args.version:
+        print(f"{VERSION}")
+        return 0
+    global LOG  # pylint: disable=global-statement
+    global KEEP  # pylint: disable=global-statement
+    if args.no_log:
+        LOG = False
+    if args.keep:
+        KEEP = True
+
+    if not args.concurrent:
+        url = args.url or input("url: ")
+        start_timestamp = args.start_timestamp or input("start_timestamp: ")
+        length = args.length or input("length (seconds): ")
+        outname = args.outname or input("output name: ")
+        run_download_and_cut(
+            url=url,
+            start_timestamp=start_timestamp,
+            length=length,
+            outname=outname,
+            verbose=True,
+        )
+        if os.path.exists(outname):
+            return 0
+        return 1
+    _run_concurrent()
+    return 0
 
 
 def unit_test_rap_video():
