@@ -26,13 +26,13 @@ $ ytclip
 Add new video:
   url: ...
   start_timestamp: 08:08
-  length: 20
+  end_timestamp: 08:20
   output_name: my_file
 ```
 
 ``` (CMD-line)
 $ cd <MY_DIRECTORY>
-$ ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --length 20 --outname myoutputfile
+$ ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:52 --outname myoutputfile
 ```
 
 ``` Help file
@@ -50,7 +50,7 @@ from ytclip.ytclip import run_download_and_cut
 run_download_and_cut(
     url="https://www.youtube.com/watch?v=-wtIMTCHWuI",
     start_timestamp="1:10",
-    length="20",
+    end_timestamp="1:30",
     outname="myclip_withoutsuffix")
 ```
 

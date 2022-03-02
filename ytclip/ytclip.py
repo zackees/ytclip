@@ -69,7 +69,7 @@ def _append_file(filepath: str, data: str):
 def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
     url: str,
     start_timestamp: str,
-    length: str,
+    end_timestamp: str,
     outname: str,
     log: bool = LOG,
     verbose: bool = False,
@@ -121,7 +121,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             # start timestamp (seconds or h:mm:ss:ff)
             f" -ss {start_timestamp}"
             # length timestamp (seconds or h:mm:ss:ff)
-            f" -t {length}"
+            f" -to {end_timestamp}"
             f" {outfile}"
         )
         outfile_abs = os.path.join(outname, outfile)
@@ -167,7 +167,7 @@ def unit_test_brighteon():
     run_download_and_cut(
         "https://www.brighteon.com/f596cc8b-4b52-4152-92cb-39dadc552833",
         "10:47",
-        "20",
+        "11:07",
         "health_ranger_report",
     )
 
@@ -177,7 +177,7 @@ def unit_test_bitchute():
     run_download_and_cut(
         "https://www.bitchute.com/video/pDCS8i20enIq",
         "08:08",
-        "20",
+        "08:28",
         "sarah_westhall",
     )
 
@@ -185,7 +185,7 @@ def unit_test_bitchute():
 def _epilog() -> str:
     return (
         "Example:\n"
-        "  ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --length 20 --outname myoutputfile\n"  # pylint: disable=line-too-long
+        "  ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:58 --outname myoutputfile\n"  # pylint: disable=line-too-long
         "Any missing arguments will be prompted.\n"
     )
 
@@ -200,14 +200,14 @@ def _run_concurrent() -> None:
             url = input("  url: ")
             if url != "":
                 start_timestamp = input("  start_timestamp: ")
-                length = input("  length: ")
-                output_name = input("  output_name: ")
+                end_timestamp = input("  end_timestamp: ")
+                output_name = input("  output_name (autosaved as mp4): ")
 
                 def task():
                     return run_download_and_cut(
                         url=url,
                         start_timestamp=start_timestamp,
-                        length=length,
+                        end_timestamp=end_timestamp,
                         outname=output_name,
                     )
 
@@ -280,12 +280,12 @@ def run_cmd() -> int:  # pylint: disable=too-many-branches,too-many-statements
     if not args.concurrent:
         url = args.url or input("url: ")
         start_timestamp = args.start_timestamp or input("start_timestamp: ")
-        length = args.length or input("length (seconds): ")
-        outname = args.outname or input("output name: ")
+        end_timestamp = args.end_timestamp or input("end_timestamp: ")
+        outname = args.outname or input("output name (auto saved as mp4): ")
         run_download_and_cut(
             url=url,
             start_timestamp=start_timestamp,
-            length=length,
+            end_timestamp=end_timestamp,
             outname=outname,
             verbose=True,
         )
@@ -301,7 +301,7 @@ def unit_test_rap_video():
     run_download_and_cut(
         url="https://www.youtube.com/watch?v=CLXt3yh2g0s",
         start_timestamp="00:32",
-        length="20",
+        end_timestamp="00:34",
         outname="myoutputfile",
     )
 
