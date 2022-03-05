@@ -32,7 +32,7 @@ Add new video:
 
 ``` (CMD-line)
 $ cd <MY_DIRECTORY>
-$ ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:52 --outname myoutputfile
+$ ytclip https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:52 --outname myoutputfile
 ```
 
 ``` Help file

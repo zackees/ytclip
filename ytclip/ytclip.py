@@ -281,7 +281,11 @@ def run_cmd() -> int:  # pylint: disable=too-many-branches,too-many-statements
         url = args.url or input("url: ")
         start_timestamp = args.start_timestamp or input("start_timestamp: ")
         end_timestamp = args.end_timestamp or input("end_timestamp: ")
-        outname = args.outname or input("output name (auto saved as mp4): ")
+        while True:
+            outname = args.outname or input("output name (auto saved as mp4): ")
+            if outname != "":
+                break
+            print("Please enter a valid name")
         run_download_and_cut(
             url=url,
             start_timestamp=start_timestamp,
@@ -296,6 +300,8 @@ def run_cmd() -> int:  # pylint: disable=too-many-branches,too-many-statements
     return 0
 
 
+# Download tests take too long and YouTube has a habbit of deleting users
+# so this test is run manually.
 def unit_test_rap_video():
     """Weird title requires special handling for intermediate file name."""
     run_download_and_cut(
