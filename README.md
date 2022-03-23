@@ -17,6 +17,11 @@ stack should be cross platform and should not require elevated permissions to in
 $ python -m pip install ytclip
 ```
 
+### Windows
+
+For easy use, download the `run_ytclip.bat` and place it into any folder you want. Now you have a double clickable icon
+for operators that don't like going to the command line. No other installation is necessary.
+
 # Running
 
 
