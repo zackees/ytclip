@@ -20,7 +20,7 @@ $ python -m pip install ytclip
 ### Windows
 
 For easy use, download the [`run_ytclip.bat`](https://raw.githubusercontent.com/zackees/ytclip/main/run_ytclip.bat) and place it into any folder you want. Now you have a double clickable icon
-for users that don't like going to the command line. If it doesn't work, make sure you've installed the latest python ([link](https://python.org/download)).
+for users that don't like going to the command line. Make sure you've installed the [latest python](https://python.org/download), checking the box that says "ADD TO PATH" during installation.
 
 # Running
 
