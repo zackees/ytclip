@@ -67,3 +67,7 @@ from ytclip.ytclip import run_download_and_cut, set_logging
 set_logging(False)
 run_download_and_cut(...)
 ```
+
+# Server
+
+See the server version: [ytclip-server](https://github.com/zackees/ytclip-server)
