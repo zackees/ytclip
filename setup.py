@@ -88,7 +88,7 @@ setup(
 
     entry_points={
         "console_scripts": [
-            "ytclip = ytclip.ytclip:run_cmd",
+            "ytclip = ytclip.cmd:run",
         ],
     },
     packages=find_packages(exclude=["tests", "*.tests", "*.tests.*", "tests.*"]),

@@ -4,24 +4,12 @@
 """
 
 import os
-import argparse
 import shutil
 import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional, Tuple
-
-from ytclip.version import VERSION
-
-LOG = True
-KEEP = False
-
-
-def set_logging(val: bool) -> None:
-    """Sets the logging state, which is the file created for each command."""
-    global LOG  # pylint: disable=global-statement
-    LOG = val
 
 
 def _find_video_file_from_stdout(stdout: str) -> Optional[str]:
@@ -66,15 +54,24 @@ def _append_file(filepath: str, data: str):
         filed.write(data)
 
 
-def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches
+def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
     url: str,
     start_timestamp: str,
     end_timestamp: str,
     outname: str,
-    log: bool = LOG,
+    log: bool = True,
     verbose: bool = False,
+    keep=False,
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
+    if not start_timestamp:
+        assert (
+            not end_timestamp
+        ), "end_timestamp is required if start_timestamp is given"
+    if not start_timestamp:
+        assert (
+            not end_timestamp
+        ), "end_timestamp is must be None if start_timestamp is not None"
     outname = os.path.abspath(outname)
     os.makedirs(outname, exist_ok=True)
     try:
@@ -98,12 +95,32 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
         fullvideo = _find_video_file_from_stdout(stdout + stderr)
         if fullvideo is None or not os.path.exists(fullvideo):
             # try and find new video
+            _append_file(
+                outlog,
+                f"ERROR: Could not find video file in {outname}\n",
+            )
+
+            files = [os.path.join(outname, file) for file in os.listdir(outname)]
+            # Filter out non-video files
             files = [
-                os.path.join(outname, file)
-                for file in os.listdir(outname)
-                if (file.endswith(".mp4") or file.endswith(".webm"))
-                and os.path.isfile(os.path.join(outname, file))
+                file
+                for file in files
+                if (
+                    file.endswith(".mp4")
+                    or file.endswith(".webm")
+                    or file.endswith(".mkv")
+                )
             ]
+
+            # sort files such that webm is first, followed by mkv and then all the rest
+            def rank_file(file: str):
+                if file.endswith(".webm"):
+                    return 0
+                if file.endswith(".mkv"):
+                    return 1
+                return 2
+
+            files.sort(key=rank_file)
             if files:
                 fullvideo = files[0]
             else:
@@ -116,19 +133,20 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
                     f"RETURNED: {returncode}\n"
                 )
         outfile = f"{outname}.mp4"
-        ffmpeg_cmd = (
-            f'static_ffmpeg -y -i "{fullvideo}"'  # accepts any prompts with y
-            # start timestamp (seconds or h:mm:ss:ff)
-            f" -ss {start_timestamp}"
-            # length timestamp (seconds or h:mm:ss:ff)
-            f" -to {end_timestamp}"
-            f" {outfile}"
-        )
-        outfile_abs = os.path.join(outname, outfile)
-        if os.path.exists(outfile_abs):
+        if os.path.exists(outfile):
             if log:
-                _append_file(outlog, f"Deleting previous file: {outfile_abs}\n")
-            os.remove(outfile_abs)
+                _append_file(outlog, f"Deleting previous file: {outfile}\n")
+            os.remove(outfile)
+        if start_timestamp is None:
+            _append_file(outlog, f"Copying {fullvideo} to {outfile}\n")
+            shutil.copy(fullvideo, outfile)
+            return
+        relpath = os.path.relpath(fullvideo, outname)
+        ffmpeg_cmd = f'static_ffmpeg -y -i "{relpath}"'  # accepts any prompts with y
+        if start_timestamp:
+            ffmpeg_cmd += f" -ss {start_timestamp}"
+            ffmpeg_cmd += f" -to {end_timestamp}"
+        ffmpeg_cmd += f' "{outfile}"'
         if log:
             _append_file(outlog, f"Running: {ffmpeg_cmd}\nin {outname}")
         returncode, stdout, stderr = _exec(ffmpeg_cmd, verbose=verbose, cwd=outname)
@@ -148,7 +166,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
                 f'with command "{yt_dlp_cmd}"\n'
             )
     finally:
-        if not KEEP:
+        if not keep:
             shutil.rmtree(outname, ignore_errors=True)
 
 
@@ -182,16 +200,9 @@ def unit_test_bitchute():
     )
 
 
-def _epilog() -> str:
-    return (
-        "Example:\n"
-        "  ytclip --url https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:58 --outname myoutputfile\n"  # pylint: disable=line-too-long
-        "Any missing arguments will be prompted.\n"
-    )
-
-
-def _run_concurrent() -> None:
+def run_concurrent() -> None:
     # Interactive mode.
+    """Runs interactive concurrent mode."""
     futures = []
     executor = ThreadPoolExecutor(max_workers=8)
     try:
@@ -246,60 +257,6 @@ def _run_concurrent() -> None:
     print("All commands completed.")
 
 
-def run_cmd() -> int:  # pylint: disable=too-many-branches,too-many-statements
-    """Entry point for the command line "ytclip" utilitiy."""
-
-    parser = argparse.ArgumentParser(
-        description="Downloads and clips videos from the internet.\n",
-        epilog=_epilog(),
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-    )
-    parser.add_argument(
-        "--version", action="store_true", help=f"print version {VERSION}"
-    )
-    parser.add_argument("url", help="url of the video to download", nargs="?")
-    parser.add_argument(
-        "--concurrent", "-c", action="store_true", help="Allows multiple jobs"
-    )
-    parser.add_argument("--no-log", action="store_true", help="Suppresses logging.")
-    parser.add_argument("--start_timestamp", help="start timestamp of the clip")
-    parser.add_argument("--end_timestamp", help="end timestamp of the clip")
-    parser.add_argument("--outname", help="output name of the file (auto saved as mp4)")
-    parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
-    args = parser.parse_args()
-    if args.version:
-        print(f"{VERSION}")
-        return 0
-    global LOG  # pylint: disable=global-statement
-    global KEEP  # pylint: disable=global-statement
-    if args.no_log:
-        LOG = False
-    if args.keep:
-        KEEP = True
-
-    if not args.concurrent:
-        url = args.url or input("url: ")
-        start_timestamp = args.start_timestamp or input("start_timestamp: ")
-        end_timestamp = args.end_timestamp or input("end_timestamp: ")
-        while True:
-            outname = args.outname or input("output name (auto saved as mp4): ")
-            if outname != "":
-                break
-            print("Please enter a valid name")
-        run_download_and_cut(
-            url=url,
-            start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp,
-            outname=outname,
-            verbose=True,
-        )
-        if os.path.exists(outname):
-            return 0
-        return 1
-    _run_concurrent()
-    return 0
-
-
 # Download tests take too long and YouTube has a habbit of deleting users
 # so this test is run manually.
 def unit_test_rap_video():
@@ -312,14 +269,14 @@ def unit_test_rap_video():
     )
 
 
-def main():
-    """Just defaults to run_cmd."""
-    run_cmd()
-
-
 if __name__ == "__main__":
+    run_download_and_cut(
+        url="https://www.youtube.com/watch?v=oG25KSvFEq0",
+        start_timestamp="",
+        end_timestamp="",
+        outname="myoutputfile",
+    )
     # unit_test_brighteon()
     # unit_test_stdout_parse()
     # unit_test_bitchute()
     # unit_test_rap_video()
-    main()
