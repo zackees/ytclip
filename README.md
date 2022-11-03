@@ -13,8 +13,10 @@ $ python -m pip install ytclip
 # Usage
 
 ```bash
-ytclip https://www.youtube.com/watch?v=dQw4w9WgXcQ
-# You'll be prompted for start_time, end_time
+> ytclip https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# You'll be prompted for start_time, end_time and outname
+> ytclip https://www.youtube.com/watch?v=dQw4w9WgXcQ --start_timestamp 00:32 --end_timestamp 00:58 --outname myoutputfile
+# No prompting
 ```
 # About
 
@@ -29,9 +31,10 @@ For easy use, just download the [`run_ytclip.bat`](https://raw.githubusercontent
 # Running
 
 
-``` (Interactive)
-$ cd <MY_DIRECTORY>
-$ ytclip
+```bash
+# (Interactive)
+> cd <MY_DIRECTORY>
+> ytclip
 Add new video:
   url: ...
   start_timestamp: 08:08
@@ -39,13 +42,15 @@ Add new video:
   output_name: my_file
 ```
 
-``` (CMD-line)
-$ cd <MY_DIRECTORY>
-$ ytclip https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:52 --outname myoutputfile
+```bash
+# (CMD-line)
+> cd <MY_DIRECTORY>
+> ytclip https://www.youtube.com/watch?v=CLXt3yh2g0s --start_timestamp 00:32 --end_timestamp 00:52 --outname myoutputfile
 ```
 
-``` Help file
-$ ytclip --help
+```bash
+# Help file
+> ytclip --help
 ```
 
 
@@ -53,7 +58,7 @@ $ ytclip --help
 
 You can also use it as an api:
 
-```
+```python
 from ytclip.ytclip import run_download_and_cut
 
 run_download_and_cut(
@@ -65,7 +70,7 @@ run_download_and_cut(
 
 You can also turn off logging like so:
 
-```
+```python
 from ytclip.ytclip import run_download_and_cut, set_logging
 
 set_logging(False)
