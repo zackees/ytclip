@@ -4,20 +4,16 @@
 [![Actions Status](https://github.com/zackees/ytclip/workflows/Win_Tests/badge.svg)](https://github.com/zackees/ytclip/actions/workflows/push_win.yml)
 [![Actions Status](https://github.com/zackees/ytclip/workflows/Ubuntu_Tests/badge.svg)](https://github.com/zackees/ytclip/actions/workflows/push_ubuntu.yml)
 
-# Install
-
-```bash
-$ python -m pip install ytclip
-```
-
 # Usage
 
+Make sure python (>3.7) is installed on your system.
+
 ```bash
+> pip install ytclip
 > ytclip https://www.youtube.com/watch?v=dQw4w9WgXcQ
-# You'll be prompted for start_time, end_time and outname
-> ytclip https://www.youtube.com/watch?v=dQw4w9WgXcQ --start_timestamp 00:32 --end_timestamp 00:58 --outname myoutputfile
-# No prompting
+# Follow the prompts
 ```
+
 # About
 
 This utility provides a command that will automate downloading files and creating clips out of them.
