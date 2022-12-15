@@ -76,3 +76,9 @@ run_download_and_cut(...)
 # Server
 
 See the server version: [ytclip-server](https://github.com/zackees/ytclip-server)
+
+
+# TODO
+
+  * Add lossless cut to tool:
+    * https://github.com/mifi/lossless-cut
