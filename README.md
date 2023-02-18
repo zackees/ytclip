@@ -77,6 +77,9 @@ run_download_and_cut(...)
 
 See the server version: [ytclip-server](https://github.com/zackees/ytclip-server)
 
+# Releases
+
+  * 1.2.3: Make yt-dlp use 1.2.3 or higher (fixes downloader).
 
 # TODO
 
