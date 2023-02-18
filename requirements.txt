@@ -1,2 +1,2 @@
 static_ffmpeg
-yt-dlp >= 2023.2.17
+yt-dlp
