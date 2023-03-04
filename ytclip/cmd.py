@@ -2,11 +2,13 @@
 Command line utility for downloading and cutting videos.
 """
 
-import os
 import argparse
-from ytclip.ytclip import run_download_and_cut, run_concurrent
+import os
+import sys
 
+from ytclip.getremoteversion import get_remote_version
 from ytclip.version import VERSION
+from ytclip.ytclip import run_concurrent, run_download_and_cut
 
 
 def _epilog() -> str:
@@ -80,7 +82,14 @@ def run() -> int:  # pylint: disable=too-many-branches,too-many-statements
 
 def main():
     """Just defaults to run_cmd."""
-    run()
+    rtn = run()
+    remote_version = get_remote_version()
+    if remote_version is not None and remote_version != VERSION:
+        print(
+            f"Update available. Current version: {VERSION}. Remote version: {remote_version}\n"
+            "To update, run: pip install --upgrade ytclip"
+        )
+    return rtn
 
 
 if __name__ == "__main__":
@@ -88,4 +97,4 @@ if __name__ == "__main__":
     # unit_test_stdout_parse()
     # unit_test_bitchute()
     # unit_test_rap_video()
-    main()
+    sys.exit(main())
