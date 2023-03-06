@@ -79,6 +79,7 @@ See the server version: [ytclip-server](https://github.com/zackees/ytclip-server
 
 # Releases
 
+  * 1.2.5: Cleans youtube videos by removing the ?t= part of the url.
   * 1.2.4: Adds update warning for ytclip if out of date.
   * 1.2.3: Make yt-dlp use 1.2.3 or higher (fixes downloader).
 
