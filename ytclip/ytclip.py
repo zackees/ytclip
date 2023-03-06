@@ -54,6 +54,15 @@ def _append_file(filepath: str, data: str):
         filed.write(data)
 
 
+def _clean_yt_url(url: str) -> str:
+    """Cleans the url to be used with yt-dlp."""
+    if "youtu.be" in url or "youtube.com" in url:
+        # Remove the timestamp
+        if "?t=" in url:
+            url = url.split("?t=")[0]
+    return url
+
+
 def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,too-many-branches,too-many-statements
     url: str,
     start_timestamp: str,
@@ -64,6 +73,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
     keep=False,
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
+    url = _clean_yt_url(url)
     if not start_timestamp:
         assert (
             not end_timestamp

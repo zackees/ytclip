@@ -32,6 +32,12 @@ class YtclipTester(unittest.TestCase):
             run_download_and_cut(url="https://www.youtube.com/watch?v=oG25KSvFEq0", start_timestamp="", end_timestamp="", outname=outname, verbose=True, keep=False, log=True)
             os.path.exists(outname)
 
+    def test_yttime_value(self) -> None:
+        # Create a temporary directory where the file will be saved
+        with tempfile.TemporaryDirectory() as tmpdir:
+            outname = os.path.join(tmpdir, "test")
+            run_download_and_cut(url="https://www.youtube.com/watch?v=oG25KSvFEq0?t=1", start_timestamp="", end_timestamp="", outname=outname, verbose=True, keep=False, log=True)
+            os.path.exists(outname)
             
 
 
