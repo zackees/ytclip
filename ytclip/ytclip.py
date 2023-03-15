@@ -155,6 +155,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
         ffmpeg_cmd = f'static_ffmpeg -y -i "{relpath}"'  # accepts any prompts with y
         if start_timestamp:
             ffmpeg_cmd += f" -ss {start_timestamp}"
+        if end_timestamp:
             ffmpeg_cmd += f" -to {end_timestamp}"
         ffmpeg_cmd += f' "{outfile}"'
         if log:
@@ -220,9 +221,9 @@ def run_concurrent() -> None:
             print("Add new video:")
             url = input("  url: ")
             if url != "":
-                start_timestamp = input("  start_timestamp: ")
-                end_timestamp = input("  end_timestamp: ")
-                output_name = input("  output_name (autosaved as mp4): ")
+                start_timestamp = input("  start_timestamp: ").strip()
+                end_timestamp = input("  end_timestamp: ").strip()
+                output_name = input("  output_name (autosaved as mp4): ").strip()
 
                 def task():
                     return run_download_and_cut(
