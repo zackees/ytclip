@@ -79,6 +79,7 @@ See the server version: [ytclip-server](https://github.com/zackees/ytclip-server
 
 # Releases
 
+  * 1.2.7: Brighteon downloads have been fixed, thanks to the brighteon plugin.
   * 1.2.6: Fix error where omitting length would cause error.
   * 1.2.5: Cleans youtube videos by removing the ?t= part of the url.
   * 1.2.4: Adds update warning for ytclip if out of date.

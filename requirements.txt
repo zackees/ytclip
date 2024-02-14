@@ -1,2 +1,3 @@
 static_ffmpeg
 yt-dlp>=2023.2.17
+ytdlp-brighteon>=2023.10.3
