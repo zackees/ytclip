@@ -43,10 +43,18 @@ def run() -> int:  # pylint: disable=too-many-branches,too-many-statements
     )
     parser.add_argument("--outname", help="output name of the file (auto saved as mp4)")
     parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
+    parser.add_argument("--upgrade", action="store_true", help="Upgrades yt-dlp")
     args = parser.parse_args()
     if args.version:
         print(f"{VERSION}")
         return 0
+    
+    if args.upgrade:
+        # get pip from the current python environment
+        python_exe = sys.executable
+        cmd = f'"{python_exe}" -m pip install --upgrade yt-dlp'
+        print(f"Running: {cmd}")
+        os.system(cmd)
 
     if args.concurrent:
         run_concurrent()
