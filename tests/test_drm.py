@@ -8,7 +8,7 @@ DRM_URL = "https://www.youtube.com/watch?v=VTqTpGXlHms"
 
 class YtclipDrmTester(unittest.TestCase):
 
-    def test_notimestamps_cmd(self) -> None:
+    def test_drm_gives_warning(self) -> None:
         # Create a temporary directory where the file will be saved
         with tempfile.TemporaryDirectory() as tmpdir:
             outname = os.path.join(tmpdir, "test")

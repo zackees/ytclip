@@ -1,5 +1,6 @@
 #!/bin/bash
 set -e
+. ./activate.sh
 echo Running ruff ytclip
 ruff check --fix ytclip
 echo Running ruff tests
