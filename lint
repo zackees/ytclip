@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+echo Running ruff ytclip
+ruff check --fix ytclip
+echo Running ruff tests
+ruff check --fix tests
+echo Running black ytclip tests
+black ytclip tests
+echo Running isort ytclip tests
+isort --profile black ytclip tests
+echo Running flake8 ytclip tests
+echo Running mypy ytclip
+mypy ytclip tests
+echo Linting complete!
+exit 0

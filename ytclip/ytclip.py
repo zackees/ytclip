@@ -92,7 +92,9 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
                 filed.write("")
 
         video_path_tmpl = r"full_video.%(ext)s"
-        yt_dlp_cmd: str = f'yt-dlp --no-check-certificate --force-overwrites --output "{video_path_tmpl}" {url}'  # pylint: disable=line-too-long
+        yt_dlp_cmd: str = (
+            f'yt-dlp --no-check-certificate --force-overwrites --output "{video_path_tmpl}" {url}'  # pylint: disable=line-too-long
+        )
         if log:
             _append_file(outlog, f"Running: {yt_dlp_cmd}\nin {outname}")
         returncode, stdout, stderr = _exec(yt_dlp_cmd, verbose=verbose, cwd=outname)
@@ -170,7 +172,7 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
         if end_timestamp:
             ffmpeg_cmd += f" -to {end_timestamp}"
         if crf is not None:
-            ffmpeg_cmd += f' -crf {crf}'
+            ffmpeg_cmd += f" -crf {crf}"
         ffmpeg_cmd += f' "{outfile}"'
         if log:
             _append_file(outlog, f"Running: {ffmpeg_cmd}\nin {outname}")
