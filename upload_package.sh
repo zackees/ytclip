@@ -1,2 +1,2 @@
-pip install twine
+pip install twine wheel
 python setup.py upload
