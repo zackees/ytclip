@@ -102,6 +102,17 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             )
         # Search through the output of the yt-dlp command to for the
         # file name.
+        is_drm_protected = "This video is drm protected" in (stdout + stderr)
+        if is_drm_protected:
+            raise OSError(
+                "###################\n"
+                f"{stdout}\n"
+                f"{stderr}\n"
+                "\n###################\n"
+                f"with command '{yt_dlp_cmd}'\n"
+                f"RETURNED: {returncode}\n"
+                f"\n\nDRM protected video found at {url} and can't be downloaded.\n"
+            )
         fullvideo = _find_video_file_from_stdout(stdout + stderr)
         if fullvideo is None or not os.path.exists(fullvideo):
             # try and find new video

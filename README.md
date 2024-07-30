@@ -79,6 +79,7 @@ See the server version: [ytclip-server](https://github.com/zackees/ytclip-server
 
 # Releases
 
+  * 1.2.9: Drm video now detected properly and an output error message is emitted.
   * 1.2.8: Minimum version of `yt-dlp` bumped. Adds `--upgrade` for upgrading `yt-dlp`
   * 1.2.7: Brighteon downloads have been fixed, thanks to the brighteon plugin.
   * 1.2.6: Fix error where omitting length would cause error.
