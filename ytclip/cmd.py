@@ -44,6 +44,7 @@ def run() -> int:  # pylint: disable=too-many-branches,too-many-statements
     parser.add_argument("--outname", help="output name of the file (auto saved as mp4)")
     parser.add_argument("--keep", action="store_true", help="keeps intermediate files")
     parser.add_argument("--upgrade", action="store_true", help="Upgrades yt-dlp")
+    parser.add_argument("--crf", type=int, default=None, help="CRF value for video encoding")
     args = parser.parse_args()
     if args.version:
         print(f"{VERSION}")
@@ -81,6 +82,7 @@ def run() -> int:  # pylint: disable=too-many-branches,too-many-statements
         verbose=True,
         keep=args.keep,
         log=not args.no_log,
+        crf=args.crf,
     )
     if os.path.exists(f"{outname}.mp4"):
         return 0

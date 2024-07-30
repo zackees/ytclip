@@ -70,7 +70,8 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
     outname: str,
     log: bool = True,
     verbose: bool = False,
-    keep=False,
+    keep: bool = False,
+    crf: Optional[int] = None,
 ) -> None:
     """Runs a series of commands that downloads and cuts the given url to output filename."""
     url = _clean_yt_url(url)
@@ -168,6 +169,8 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             ffmpeg_cmd += f" -ss {start_timestamp}"
         if end_timestamp:
             ffmpeg_cmd += f" -to {end_timestamp}"
+        if crf is not None:
+            ffmpeg_cmd += f' -crf {crf}'
         ffmpeg_cmd += f' "{outfile}"'
         if log:
             _append_file(outlog, f"Running: {ffmpeg_cmd}\nin {outname}")
@@ -209,6 +212,7 @@ def unit_test_brighteon():
         "10:47",
         "11:07",
         "health_ranger_report",
+        crf=23,
     )
 
 
@@ -219,6 +223,7 @@ def unit_test_bitchute():
         "08:08",
         "08:28",
         "sarah_westhall",
+        crf=23,
     )
 
 
@@ -288,6 +293,7 @@ def unit_test_rap_video():
         start_timestamp="00:32",
         end_timestamp="00:34",
         outname="myoutputfile",
+        crf=23,
     )
 
 
@@ -297,6 +303,7 @@ if __name__ == "__main__":
         start_timestamp="",
         end_timestamp="",
         outname="myoutputfile",
+        crf=23,
     )
     # unit_test_brighteon()
     # unit_test_stdout_parse()
