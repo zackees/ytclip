@@ -58,6 +58,7 @@ def run() -> int:  # pylint: disable=too-many-branches,too-many-statements
         cmd = f'"{python_exe}" -m pip install --upgrade yt-dlp'
         print(f"Running: {cmd}")
         os.system(cmd)
+        sys.exit(0)
 
     if args.concurrent:
         run_concurrent()

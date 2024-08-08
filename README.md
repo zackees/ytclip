@@ -79,6 +79,7 @@ See the server version: [ytclip-server](https://github.com/zackees/ytclip-server
 
 # Releases
 
+  * 1.2.11: `--upgrade` now exits 0 instead of continuing
   * 1.2.10: Adds `--crf` to control bit rate encoding.
   * 1.2.9: Drm video now detected properly and an output error message is emitted.
   * 1.2.8: Minimum version of `yt-dlp` bumped. Adds `--upgrade` for upgrading `yt-dlp`
