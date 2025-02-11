@@ -5,7 +5,7 @@
   "terminal.integrated.profiles.windows": {
       "Git Bash": {
           "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-          "args": ["--login"]
+          "args": ["--cd=."]
       }
   },
   "files.eol": "\n", // Unix
