@@ -1,9 +1,11 @@
 #!/bin/bash
 set -x
-rm -rf venv
 
 rm -rf build
 rm -rf dist
+rm -rf venv
+rm -rf .venv
+
 rm -rf *.egg-info
 rm -rf .eggs
 rm -rf .tox
@@ -16,3 +18,5 @@ rm -rf .coverage
 find . -name "*.pyc" -exec rm -rf {} \;
 # remove all *.egg files
 find . -name "*.egg" -exec rm -rf {} \;
+
+rm -f uv.lock

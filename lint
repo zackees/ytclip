@@ -1,16 +1,21 @@
 #!/bin/bash
 set -e
-. ./activate.sh
+
+# if venv doesn't exist, invoke ./install
+if [ ! -d ".venv" ]; then
+    echo "No venv present, so installing..."
+    ./install
+fi
+
 echo Running ruff ytclip
-ruff check --fix ytclip
+uv run ruff check --fix ytclip
 echo Running ruff tests
-ruff check --fix tests
+uv run ruff check --fix tests
 echo Running black ytclip tests
-black ytclip tests
+uv run black ytclip tests
 echo Running isort ytclip tests
-isort --profile black ytclip tests
-echo Running flake8 ytclip tests
-echo Running mypy ytclip
-mypy ytclip tests
+uv run isort --profile black ytclip tests
+echo Running mypy ytclip tests
+uv run mypy ytclip tests
 echo Linting complete!
 exit 0

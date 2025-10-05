@@ -161,8 +161,9 @@ def run_download_and_cut(  # pylint: disable=too-many-arguments,too-many-locals,
             if log:
                 _append_file(outlog, f"Deleting previous file: {outfile}\n")
             os.remove(outfile)
-        if start_timestamp is None:
-            _append_file(outlog, f"Copying {fullvideo} to {outfile}\n")
+        if not start_timestamp:
+            if log:
+                _append_file(outlog, f"Copying {fullvideo} to {outfile}\n")
             shutil.copy(fullvideo, outfile)
             return
         relpath = os.path.relpath(fullvideo, outname)

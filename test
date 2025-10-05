@@ -1,3 +1,10 @@
 #!/bin/bash
-. ./activate.sh
-pytest -n auto tests -v
+set -e
+
+# if venv doesn't exist, invoke ./install
+if [ ! -d ".venv" ]; then
+    echo "No venv present, so installing..."
+    ./install
+fi
+
+uv run pytest -n auto tests -v
